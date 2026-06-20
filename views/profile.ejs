@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - My Profile</title>
+    <%- include('partials/links') %>
+</head>
+<body class="bg-light">
+
+    <%- include('partials/header') %>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12 my-3 px-4">
+                <h2 class="fw-bold">USER PROFILE</h2>
+                <div style="font-size: 14px;">
+                    <a href="/" class="text-secondary text-decoration-none">HOME</a>
+                    <span class="text-secondary"> > </span>
+                    <span class="text-dark">PROFILE</span>
+                </div>
+            </div>
+
+            <!-- Profile Info Form -->
+            <div class="col-lg-8 col-md-12 px-4 mb-4">
+                <div class="card p-4 shadow-sm rounded border-0 bg-white">
+                    <form id="profile-form" enctype="multipart/form-data">
+                        <h5 class="fw-bold mb-4">PERSONAL INFORMATION</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" value="<%= user.name %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="number" name="phone" value="<%= user.phone %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date of birth</label>
+                                <input type="date" name="dob" value="<%= user.dob ? new Date(user.dob).toISOString().split('T')[0] : '' %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Pincode</label>
+                                <input type="number" name="pincode" value="<%= user.pincode %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea name="address" required class="form-control shadow-none" rows="3"><%= user.address %></textarea>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Change Profile Picture</label>
+                                <input type="file" name="profile" accept=".jpg, .jpeg, .png" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-4 d-flex align-items-center justify-content-center">
+                                <div class="text-center">
+                                    <p class="mb-1 text-secondary" style="font-size: 13px;">Current Avatar</p>
+                                    <img src="/uploads/users/<%= user.profile %>" class="rounded border" style="width: 70px; height: 70px; object-fit: cover;">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn text-white shadow-none custom-bg border-0 px-4 py-2 rounded">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Password Form -->
+            <div class="col-lg-4 col-md-12 px-4 mb-4">
+                <div class="card p-4 shadow-sm rounded border-0 bg-white">
+                    <form id="password-form">
+                        <h5 class="fw-bold mb-4">CHANGE PASSWORD</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Old Password</label>
+                            <input type="password" name="old_pass" required class="form-control shadow-none">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_pass" required class="form-control shadow-none">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_pass" required class="form-control shadow-none">
+                        </div>
+                        <button type="submit" class="btn text-white shadow-none custom-bg border-0 px-4 py-2 rounded w-100">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        // Update Profile Info
+        const profileForm = document.getElementById('profile-form');
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(profileForm);
+
+            try {
+                const response = await fetch('/api/profile/update', {
+                    method: 'POST',
+                    body: data
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Profile updated successfully!');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showAlert('danger', result.message || 'Profile update failed.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error updating profile details.');
+            }
+        });
+
+        // Update Password
+        const passwordForm = document.getElementById('password-form');
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const old_pass = passwordForm.elements.old_pass.value;
+            const new_pass = passwordForm.elements.new_pass.value;
+            const confirm_pass = passwordForm.elements.confirm_pass.value;
+
+            if (new_pass !== confirm_pass) {
+                showAlert('danger', 'Passwords do not match.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/profile/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ old_pass, new_pass })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Password updated successfully!');
+                    passwordForm.reset();
+                } else {
+                    showAlert('danger', result.message || 'Password update failed.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error updating password.');
+            }
+        });
+    </script>
+</body>
+</html>

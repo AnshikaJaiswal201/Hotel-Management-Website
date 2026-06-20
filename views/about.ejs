@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - About</title>
+  <%- include('partials/links') %>
+  <style>
+    .box {
+      border-top-color: var(--teal) !important;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+  <%- include('partials/header') %>
+
+  <div class="my-5 px-4">
+    <h2 class="mb-2 text-center fw-bold h-font">About Us</h2>
+    <div class="h-line bg-dark"></div>
+    <p class="text-center mt-3"><%= settings?.site_title || 'Bellona Luxury Hotel' %> stands as a beacon of unmatched hospitality.<br> Learn about our history, scale, achievements, and leadership team.</p>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-between align-items-center">
+      <div class="col-lg-6 col-md-5 mb-4 order-lg-1 order-md-1 order-2">
+        <h3 class="mb-3 fw-bold">Unwind in Elite Grandeur</h3>
+        <p class="text-secondary" style="line-height: 1.8;">
+          <%= settings?.site_about || 'Bellona Luxury Hotel is a premium hotel hospitality brand committed to giving travelers a sanctuary of peace, luxury, and premium services.' %>
+        </p>
+      </div>
+      <div class="col-lg-5 col-md-5 order-lg-2 order-1 mb-4">
+        <img src="/images/about.jpeg" class="w-100 rounded shadow-sm">
+      </div>
+    </div>
+  </div>
+
+  <!-- Scale metrics statistics -->
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-lg-3 col-md-6 mb-4 px-4">
+        <div class="bg-white rounded shadow-sm p-4 border-4 border-top text-center box">
+          <img class="mb-3 rounded" src="/images/about3.jpeg" style="width: 100%; height: 140px; object-fit: cover;">
+          <h4 class="fw-bold">5000+ ROOMS</h4>
+          <h6 class="text-secondary">Tailored precisely to your budget and needs.</h6>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4 px-4">
+        <div class="bg-white rounded shadow-sm p-4 border-4 border-top text-center box">
+          <img class="mb-3 rounded" src="/images/about3.jpeg" style="width: 100%; height: 140px; object-fit: cover;">
+          <h4 class="fw-bold">2 Crore+ Guests</h4>
+          <h6 class="text-secondary">Where every traveler feels cared for.</h6>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4 px-4">
+        <div class="bg-white rounded shadow-sm p-4 border-4 border-top text-center box">
+          <img class="mb-3 rounded" src="/images/about5.jpeg" style="width: 100%; height: 140px; object-fit: cover;">
+          <h4 class="fw-bold">10000+ STAFF</h4>
+          <h6 class="text-secondary">Providing friendly, elite, and rapid service.</h6>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4 px-4">
+        <div class="bg-white rounded shadow-sm p-4 border-4 border-top text-center box">
+          <img class="mb-3 rounded" src="/images/about4.jpeg" style="width: 100%; height: 140px; object-fit: cover;">
+          <h4 class="fw-bold">Best Ratings</h4>
+          <h6 class="text-secondary">Highly reviewed across global travel platforms.</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Management Team -->
+  <h3 class="my-5 fw-bold h-font text-center">Management Team</h3>
+  <div class="container px-4 mb-5">
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper mb-5">
+        <% if (locals.team && team.length > 0) { %>
+          <% team.forEach(member => { %>
+            <div class="swiper-slide bg-white text-center overflow-hidden rounded shadow-sm border">
+              <img src="/uploads/team/<%= member.picture %>" class="w-100" style="height: 300px; object-fit: cover;">
+              <h5 class="mt-3 mb-3 fw-bold"><%= member.name %></h5>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <!-- Default fallback management slide -->
+          <div class="swiper-slide bg-white text-center overflow-hidden rounded shadow-sm border">
+            <img src="/images/MT1.jpeg" class="w-100" style="height: 300px; object-fit: cover;">
+            <h5 class="mt-3 mb-3 fw-bold">Anshika Jaiswal</h5>
+          </div>
+          <div class="swiper-slide bg-white text-center overflow-hidden rounded shadow-sm border">
+            <img src="/images/MT1.jpeg" class="w-100" style="height: 300px; object-fit: cover;">
+            <h5 class="mt-3 mb-3 fw-bold">Rohan Verma</h5>
+          </div>
+          <div class="swiper-slide bg-white text-center overflow-hidden rounded shadow-sm border">
+            <img src="/images/MT1.jpeg" class="w-100" style="height: 300px; object-fit: cover;">
+            <h5 class="mt-3 mb-3 fw-bold">Shikha Roy</h5>
+          </div>
+        <% } %>
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <!-- Carousel Design using swiper js -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    var swiper = new Swiper(".mySwiper", {
+      spaceBetween: 40,
+      pagination: {
+        el: ".swiper-pagination",
+      },
+      breakpoints: {
+        320: { slidesPerView: 1 },
+        640: { slidesPerView: 1 },
+        768: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 },
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Refund Bookings</title>
+    <%- include('../partials/links') %>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <h3 class="fw-bold h-font mb-4 border-bottom pb-2">REFUND BOOKINGS</h3>
+
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold mb-3">Cancelled Bookings Pending Refund</h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border text-center" style="min-width: 1000px;">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th>#</th>
+                                        <th>Guest Details</th>
+                                        <th>Room Details</th>
+                                        <th>Booking Details</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="refund-bookings-table-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        // Keep dropdown open
+        document.getElementById('bookingDropdown').classList.add('show');
+        document.getElementById('menu-refund-bookings').classList.add('active');
+
+        // Fetch bookings
+        async function getRefundBookings() {
+            try {
+                const response = await fetch('/admin/bookings/refund/list');
+                const bookings = await response.json();
+                const tbody = document.getElementById('refund-bookings-table-body');
+                tbody.innerHTML = '';
+
+                if (bookings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-secondary py-4">No cancelled bookings pending refund.</td></tr>`;
+                    return;
+                }
+
+                bookings.forEach((b, idx) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td class="text-start">
+                                <span class="fw-bold">Name:</span> ${b.user_name}<br>
+                                <span class="fw-bold">Phone:</span> ${b.user_phone}<br>
+                                <span class="fw-bold">Address:</span> ${b.user_address}
+                            </td>
+                            <td class="text-start">
+                                <span class="fw-bold">Room:</span> ${b.room.name}<br>
+                                <span class="fw-bold">Price:</span> ₹${b.room.price}/night<br>
+                                <span class="fw-bold">Check-in:</span> ${new Date(b.check_in).toDateString()}<br>
+                                <span class="fw-bold">Check-out:</span> ${new Date(b.check_out).toDateString()}
+                            </td>
+                            <td class="text-start">
+                                <span class="fw-bold">Booking ID:</span> ${b.booking_id}<br>
+                                <span class="fw-bold">Trans ID:</span> ${b.trans_id}<br>
+                                <span class="fw-bold">Paid Amount:</span> <span class="text-success fw-bold">₹${b.amount.toLocaleString()}</span><br>
+                                <span class="fw-bold">Cancelled Date:</span> ${new Date(b.updatedAt).toLocaleString()}
+                            </td>
+                            <td>
+                                <button onclick="processRefund('${b._id}')" class="btn btn-success btn-sm text-white shadow-none border-0 px-3 py-2"><i class="bi bi-cash-stack"></i> Approve & Process Refund</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                showAlert('danger', 'Error loading refund list.');
+            }
+        }
+
+        // Process Refund
+        async function processRefund(id) {
+            if (!confirm('Are you sure you want to approve and process the refund for this booking?')) return;
+            try {
+                const response = await fetch(`/admin/bookings/refund/approve/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    showAlert('success', 'Refund approved and marked as processed!');
+                    getRefundBookings();
+                } else {
+                    showAlert('danger', 'Failed to approve refund.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error processing refund.');
+            }
+        }
+
+        // Load initially
+        getRefundBookings();
+    </script>
+</body>
+</html>

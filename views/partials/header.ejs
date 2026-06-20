@@ -1,0 +1,235 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white px-lg-3 py-lg-2 shadow-sm sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand me-5 fw-bold fs-3 h-font" href="/">Bellona Luxury Hotel</a>
+        <button class="navbar-toggler shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link me-2" id="nav-home" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link me-2" id="nav-rooms" href="/rooms">Rooms</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link me-2" id="nav-facilities" href="/facilities">Facilities</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link me-2" id="nav-contact" href="/contact">Contact Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link mb-2" id="nav-about" href="/about">About</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <% if (locals.user) { %>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-dark shadow-none dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                            <img src="/uploads/users/<%= user.profile %>" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" class="me-2">
+                            <%= user.name %>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-lg-end">
+                            <li><a class="dropdown-item" href="/profile">Profile Settings</a></li>
+                            <li><a class="dropdown-item" href="/bookings">My Bookings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+                        </ul>
+                    </div>
+                <% } else { %>
+                    <button type="button" class="btn btn-outline-dark shadow-none me-lg-3 me-2" data-bs-toggle="modal" data-bs-target="#Loginmodal">
+                        Login
+                    </button>
+                    <button type="button" class="btn btn-outline-dark shadow-none" data-bs-toggle="modal" data-bs-target="#Register">
+                        Register
+                    </button>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Login Modal -->
+<div class="modal fade" id="Loginmodal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loginLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="login-form">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5 d-flex align-items-center">
+                        <i class="bi bi-people-fill fs-3 me-2"></i>User Login
+                    </h5>
+                    <button type="reset" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email address or Phone</label>
+                        <input type="text" name="email_phone" required class="form-control shadow-none">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" required class="form-control shadow-none">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <button type="submit" class="btn1 shadow-none custom-bg text-white px-4 py-2 border-0 rounded">Login</button>
+                        <a href="javascript:void(0)" onclick="forgotPassword()" class="text-secondary text-decoration-none">Forgot Password?</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Registration Modal -->
+<div class="modal fade" id="Register" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="registerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="register-form" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5 d-flex align-items-center">
+                        <i class="bi bi-person-lines-fill fs-3 me-2"></i>User Registration
+                    </h5>
+                    <button type="reset" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <span class="badge text-bg-light text-dark mb-3 text-wrap lh-base">
+                        Note: Your details must match your Government ID card (Aadhaar, Passport, etc.) for check-in validation.
+                    </span>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6 ps-0 p-1 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 p-1 mb-3">
+                                <label class="form-label">Email address</label>
+                                <input type="email" name="email" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 p-1 ps-0 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="number" name="phone" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 p-1 mb-3">
+                                <label class="form-label">Picture</label>
+                                <input type="file" name="profile" accept=".jpg, .jpeg, .png" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-12 ps-0 mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea name="address" required class="form-control shadow-none" rows="1"></textarea>
+                            </div>
+                            <div class="col-md-6 ps-0 p-1 mb-3">
+                                <label class="form-label">Pincode</label>
+                                <input type="number" name="pincode" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 p-1 mb-3">
+                                <label class="form-label">Date of birth</label>
+                                <input type="date" name="dob" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 ps-0 p-1 mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 p-1 mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="confirm_password" required class="form-control shadow-none">
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <button type="submit" class="btn1 shadow-none custom-bg text-white px-4 py-2 border-0 rounded">Register</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Highlight active link
+    document.addEventListener("DOMContentLoaded", () => {
+        const path = window.location.pathname;
+        if (path === '/') document.getElementById('nav-home').classList.add('active');
+        else if (path === '/rooms') document.getElementById('nav-rooms').classList.add('active');
+        else if (path === '/facilities') document.getElementById('nav-facilities').classList.add('active');
+        else if (path === '/contact') document.getElementById('nav-contact').classList.add('active');
+        else if (path === '/about') document.getElementById('nav-about').classList.add('active');
+    });
+
+    // Handle user registration via AJAX
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(registerForm);
+            
+            if (data.get('password') !== data.get('confirm_password')) {
+                showAlert('danger', 'Passwords do not match.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    body: data
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Registration Successful! You can login now.');
+                    registerForm.reset();
+                    // Close Modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('Register'));
+                    modal.hide();
+                } else {
+                    showAlert('danger', result.message || 'Registration failed.');
+                }
+            } catch (err) {
+                showAlert('danger', 'An error occurred during registration.');
+            }
+        });
+    }
+
+    // Handle user login via AJAX
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email_phone = loginForm.elements.email_phone.value;
+            const password = loginForm.elements.password.value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email_phone, password })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Logged in successfully!');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showAlert('danger', result.message || 'Login failed.');
+                }
+            } catch (err) {
+                showAlert('danger', 'An error occurred during login.');
+            }
+        });
+    }
+
+    function forgotPassword() {
+        const email = prompt("Please enter your registered email address:");
+        if (!email) return;
+        fetch('/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', 'Mock password reset link sent successfully to your email!');
+            } else {
+                showAlert('danger', data.message || 'Failed to process request.');
+            }
+        })
+        .catch(() => showAlert('danger', 'Error processing request.'));
+    }
+</script>

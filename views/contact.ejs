@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - Contact</title>
+  <%- include('partials/links') %>
+</head>
+<body class="bg-light">
+
+  <%- include('partials/header') %>
+  
+  <div class="my-5 px-4">
+    <h2 class="mb-2 text-center fw-bold h-font">Contact Us</h2>
+    <div class="h-line bg-dark"></div>
+    <p class="text-center mt-3">Have questions, requests, or comments? Drop us a line below.<br> Our administrative team will reach back to you shortly.</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <!-- Contact details card -->
+      <div class="col-lg-6 col-md-6 mb-5 px-4">
+        <div class="bg-white rounded shadow p-4">
+          <iframe class="w-100 rounded mb-4" height="320px" src="<%= contact?.iframe %>" loading="lazy" style="border:0;"></iframe>
+          
+          <h5 class="fw-bold">Address</h5>
+          <a href="<%= contact?.gmap %>" target="_blank" class="d-inline-block text-decoration-none text-dark mb-3">
+            <i class="bi bi-geo-alt-fill text-primary"></i> <%= contact?.address %>
+          </a>
+
+          <h5 class="mt-4 fw-bold">Call Us</h5>
+          <a href="tel:<%= contact?.pn1 %>" class="d-inline-block mb-2 text-decoration-none text-dark">
+            <i class="bi bi-telephone-outbound-fill text-primary"></i> <%= contact?.pn1 %>
+          </a><br>
+          <% if (contact?.pn2) { %>
+            <a href="tel:<%= contact?.pn2 %>" class="d-inline-block text-decoration-none text-dark">
+              <i class="bi bi-telephone-outbound-fill text-primary"></i> <%= contact?.pn2 %>
+            </a>
+          <% } %>
+
+          <h5 class="mt-4 fw-bold">Email</h5>
+          <a href="mailto:<%= contact?.email %>" class="d-inline-block mb-2 text-decoration-none text-dark">
+            <i class="bi bi-envelope-at-fill text-primary"></i> <%= contact?.email %>
+          </a>
+
+          <h5 class="mt-4 fw-bold">Follow Us</h5>
+          <a href="<%= contact?.tw %>" target="_blank" class="d-inline-block text-dark fs-5 me-3"><i class="bi bi-twitter"></i></a>
+          <a href="<%= contact?.fb %>" target="_blank" class="d-inline-block text-dark fs-5 me-3"><i class="bi bi-facebook"></i></a>
+          <a href="<%= contact?.insta %>" target="_blank" class="d-inline-block text-dark fs-5"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+
+      <!-- Send a message form -->
+      <div class="col-lg-6 col-md-6 px-4">
+        <div class="bg-white rounded shadow p-4">
+          <form id="contact-form">
+            <h5 class="fw-bold mb-4">Send a Message</h5>
+            <div class="mb-3">
+              <label class="form-label" style="font-weight: 500;">Name</label>
+              <input type="text" name="name" required class="form-control shadow-none">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" style="font-weight: 500;">Email address</label>
+              <input type="email" name="email" required class="form-control shadow-none">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" style="font-weight: 500;">Subject</label>
+              <input type="text" name="subject" required class="form-control shadow-none">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" style="font-weight: 500;">Message</label>
+              <textarea name="message" required class="form-control shadow-none" rows="5" style="resize: none;"></textarea>
+            </div>
+            <button type="submit" class="btn1 text-white mt-3 custom-bg border-0 px-4 py-2 rounded">SEND</button>
+          </form> 
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <%- include('partials/footer') %>
+
+  <script>
+    const contactForm = document.getElementById('contact-form');
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = contactForm.elements.name.value;
+      const email = contactForm.elements.email.value;
+      const subject = contactForm.elements.subject.value;
+      const message = contactForm.elements.message.value;
+
+      try {
+        const response = await fetch('/api/contact/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, subject, message })
+        });
+        const result = await response.json();
+        if (response.ok) {
+          showAlert('success', 'Message sent successfully!');
+          contactForm.reset();
+        } else {
+          showAlert('danger', result.message || 'Failed to send message.');
+        }
+      } catch (err) {
+        showAlert('danger', 'Error sending query. Please try again later.');
+      }
+    });
+  </script>
+</body>
+</html>

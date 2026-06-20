@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Features & Facilities</title>
+    <%- include('../partials/links') %>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <h3 class="fw-bold h-font mb-4 border-bottom pb-2">FEATURES & FACILITIES</h3>
+
+                <div class="row">
+                    <!-- Features Section -->
+                    <div class="col-md-5 mb-4">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Add Feature</h5>
+                                <form id="add-feature-form">
+                                    <div class="mb-3">
+                                        <label class="form-label">Feature Name</label>
+                                        <input type="text" name="feature_name" required class="form-control shadow-none">
+                                    </div>
+                                    <button type="submit" class="btn btn-dark shadow-none border-0 px-3">Add</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-3 bg-white">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Features List</h5>
+                                <div class="table-responsive" style="max-height: 350px; overflow-y: scroll;">
+                                    <table class="table table-hover align-middle border">
+                                        <thead>
+                                            <tr class="table-dark">
+                                                <th>#</th>
+                                                <th>Name</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="features-table-body">
+                                            <!-- Dynamically loaded -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Facilities Section -->
+                    <div class="col-md-7 mb-4">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Add Facility</h5>
+                                <form id="add-facility-form" enctype="multipart/form-data">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Facility Name</label>
+                                            <input type="text" name="facility_name" required class="form-control shadow-none">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">SVG Icon</label>
+                                            <input type="file" name="icon" accept=".svg" required class="form-control shadow-none">
+                                        </div>
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" required class="form-control shadow-none" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-dark shadow-none border-0 px-3">Add</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-3 bg-white">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Facilities List</h5>
+                                <div class="table-responsive" style="max-height: 350px; overflow-y: scroll;">
+                                    <table class="table table-hover align-middle border">
+                                        <thead>
+                                            <tr class="table-dark">
+                                                <th>Icon</th>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="facilities-table-body">
+                                            <!-- Dynamically loaded -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert and AJAX Handler Scripts -->
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        document.getElementById('menu-facilities').classList.add('active');
+
+        // Fetch Features
+        async function getFeatures() {
+            try {
+                const response = await fetch('/admin/features/list');
+                const features = await response.json();
+                const tbody = document.getElementById('features-table-body');
+                tbody.innerHTML = '';
+                
+                if (features.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-secondary py-3">No features added yet.</td></tr>`;
+                    return;
+                }
+
+                features.forEach((f, idx) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td class="fw-bold">${f.name}</td>
+                            <td>
+                                <button onclick="deleteFeature('${f._id}')" class="btn btn-danger btn-sm shadow-none"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                showAlert('danger', 'Error loading features list.');
+            }
+        }
+
+        // Fetch Facilities
+        async function getFacilities() {
+            try {
+                const response = await fetch('/admin/facilities/list');
+                const facilities = await response.json();
+                const tbody = document.getElementById('facilities-table-body');
+                tbody.innerHTML = '';
+
+                if (facilities.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-secondary py-3">No facilities added yet.</td></tr>`;
+                    return;
+                }
+
+                facilities.forEach(fac => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <img src="/uploads/facilities/${fac.icon}" width="40px" height="40px" style="object-fit: contain;">
+                            </td>
+                            <td class="fw-bold">${fac.name}</td>
+                            <td style="font-size: 13px;">${fac.description}</td>
+                            <td>
+                                <button onclick="deleteFacility('${fac._id}')" class="btn btn-danger btn-sm shadow-none"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                showAlert('danger', 'Error loading facilities list.');
+            }
+        }
+
+        // Add Feature Form Submission
+        const featureForm = document.getElementById('add-feature-form');
+        featureForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = featureForm.elements.feature_name.value;
+
+            try {
+                const response = await fetch('/admin/features/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Feature added successfully!');
+                    featureForm.reset();
+                    getFeatures();
+                } else {
+                    showAlert('danger', result.message || 'Failed to add feature.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error adding feature.');
+            }
+        });
+
+        // Add Facility Form Submission
+        const facilityForm = document.getElementById('add-facility-form');
+        facilityForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(facilityForm);
+
+            try {
+                const response = await fetch('/admin/facilities/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Facility added successfully!');
+                    facilityForm.reset();
+                    getFacilities();
+                } else {
+                    showAlert('danger', result.message || 'Failed to add facility.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error adding facility.');
+            }
+        });
+
+        // Delete Feature
+        async function deleteFeature(id) {
+            if (!confirm('Are you sure you want to delete this feature?')) return;
+            try {
+                const response = await fetch(`/admin/features/delete/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('success', 'Feature deleted successfully.');
+                    getFeatures();
+                } else {
+                    showAlert('danger', 'Failed to delete feature.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error deleting feature.');
+            }
+        }
+
+        // Delete Facility
+        async function deleteFacility(id) {
+            if (!confirm('Are you sure you want to delete this facility?')) return;
+            try {
+                const response = await fetch(`/admin/facilities/delete/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('success', 'Facility deleted successfully.');
+                    getFacilities();
+                } else {
+                    showAlert('danger', 'Failed to delete facility.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error deleting facility.');
+            }
+        }
+
+        // Initialize lists
+        getFeatures();
+        getFacilities();
+    </script>
+</body>
+</html>

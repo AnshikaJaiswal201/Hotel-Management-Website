@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Users</title>
+    <%- include('../partials/links') %>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <h3 class="fw-bold h-font mb-4 border-bottom pb-2">USERS MANAGEMENT</h3>
+
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
+                    <div class="card-body">
+                        <!-- Local Search Bar -->
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="card-title m-0 fw-bold">Registered Guests</h5>
+                            <input type="text" oninput="searchUsers(this.value)" placeholder="Search guests by name or email..." class="form-control shadow-none w-25">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border text-center">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th>#</th>
+                                        <th>Avatar</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Address & Pincode</th>
+                                        <th>DOB</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Dynamically loaded -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        document.getElementById('menu-users').classList.add('active');
+
+        let allUsers = [];
+
+        // Load users from server
+        async function getUsers() {
+            try {
+                const response = await fetch('/admin/users/list');
+                allUsers = await response.json();
+                renderUsers(allUsers);
+            } catch (err) {
+                showAlert('danger', 'Error loading registered user list.');
+            }
+        }
+
+        // Render user table
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-secondary py-3">No registered guests found.</td></tr>`;
+                return;
+            }
+
+            users.forEach((u, idx) => {
+                const blockBtn = u.status === 'active'
+                    ? `<button onclick="toggleUserStatus('${u._id}', 'blocked')" class="btn btn-danger btn-sm shadow-none">Block</button>`
+                    : `<button onclick="toggleUserStatus('${u._id}', 'active')" class="btn btn-success btn-sm shadow-none">Unblock</button>`;
+
+                const statusBadge = u.status === 'active'
+                    ? `<span class="badge bg-success">Active</span>`
+                    : `<span class="badge bg-danger">Blocked</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="user-row">
+                        <td>${idx + 1}</td>
+                        <td>
+                            <img src="/uploads/users/${u.profile}" class="rounded-circle border" style="width: 45px; height: 45px; object-fit: cover;">
+                        </td>
+                        <td class="fw-bold">${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${u.phone}</td>
+                        <td class="text-start" style="max-width: 200px;">
+                            ${u.address}<br>
+                            <span class="text-secondary fw-bold" style="font-size:12px;">Pin: ${u.pincode}</span>
+                        </td>
+                        <td>${new Date(u.dob).toLocaleDateString()}</td>
+                        <td>
+                            ${statusBadge}<br>
+                            <div class="mt-2">${blockBtn}</div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Toggle user active status
+        async function toggleUserStatus(id, newStatus) {
+            try {
+                const response = await fetch(`/admin/users/status/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (response.ok) {
+                    showAlert('success', `User status updated to ${newStatus}.`);
+                    getUsers();
+                } else {
+                    showAlert('danger', 'Failed to update user status.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error updating user status.');
+            }
+        }
+
+        // Local search filter
+        function searchUsers(val) {
+            const query = val.toLowerCase().trim();
+            const filtered = allUsers.filter(u => {
+                return u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query) || u.phone.includes(query);
+            });
+            renderUsers(filtered);
+        }
+
+        // Initial Load
+        getUsers();
+    </script>
+</body>
+</html>

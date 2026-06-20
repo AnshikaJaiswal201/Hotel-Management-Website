@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Booking Records</title>
+    <%- include('../partials/links') %>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <h3 class="fw-bold h-font mb-4 border-bottom pb-2">BOOKING RECORDS</h3>
+
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="card-title m-0 fw-bold">All Booking Logs</h5>
+                            <input type="text" oninput="searchBookings(this.value)" placeholder="Search by Guest Name, Phone, or Booking ID..." class="form-control shadow-none w-25">
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border text-center" style="min-width: 1000px;">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th>#</th>
+                                        <th>Guest Details</th>
+                                        <th>Room Details</th>
+                                        <th>Booking Details</th>
+                                        <th>Room No</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="booking-records-table-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        // Keep dropdown open
+        document.getElementById('bookingDropdown').classList.add('show');
+        document.getElementById('menu-records-bookings').classList.add('active');
+
+        let allBookings = [];
+
+        // Fetch bookings
+        async function getBookingRecords() {
+            try {
+                const response = await fetch('/admin/bookings/records/list');
+                allBookings = await response.json();
+                renderBookings(allBookings);
+            } catch (err) {
+                showAlert('danger', 'Error loading booking records.');
+            }
+        }
+
+        // Render bookings list
+        function renderBookings(bookings) {
+            const tbody = document.getElementById('booking-records-table-body');
+            tbody.innerHTML = '';
+
+            if (bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">No booking records found.</td></tr>`;
+                return;
+            }
+
+            bookings.forEach((b, idx) => {
+                let statusBadge = '';
+                if (b.booking_status === 'booked') {
+                    statusBadge = `<span class="badge bg-primary text-white">Confirmed</span>`;
+                } else if (b.booking_status === 'arrived') {
+                    statusBadge = `<span class="badge bg-success text-white">Arrived</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-danger text-white">Cancelled</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td class="text-start">
+                            <span class="fw-bold">Name:</span> ${b.user_name}<br>
+                            <span class="fw-bold">Phone:</span> ${b.user_phone}<br>
+                            <span class="fw-bold">Address:</span> ${b.user_address}
+                        </td>
+                        <td class="text-start">
+                            <span class="fw-bold">Room:</span> ${b.room.name}<br>
+                            <span class="fw-bold">Price:</span> ₹${b.room.price}/night<br>
+                            <span class="fw-bold">Check-in:</span> ${new Date(b.check_in).toDateString()}<br>
+                            <span class="fw-bold">Check-out:</span> ${new Date(b.check_out).toDateString()}
+                        </td>
+                        <td class="text-start">
+                            <span class="fw-bold">Booking ID:</span> ${b.booking_id}<br>
+                            <span class="fw-bold">Trans ID:</span> ${b.trans_id}<br>
+                            <span class="fw-bold">Paid:</span> <span class="text-success fw-bold">₹${b.amount.toLocaleString()}</span><br>
+                            <span class="fw-bold">Date:</span> ${new Date(b.createdAt).toLocaleString()}
+                        </td>
+                        <td>
+                            ${b.room_number ? `<span class="badge bg-success">${b.room_number}</span>` : `<span class="text-secondary">-</span>`}
+                        </td>
+                        <td>
+                            ${statusBadge}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Search records local
+        function searchBookings(val) {
+            const query = val.toLowerCase().trim();
+            const filtered = allBookings.filter(b => {
+                return b.user_name.toLowerCase().includes(query) || 
+                       b.booking_id.toLowerCase().includes(query) || 
+                       b.user_phone.includes(query) ||
+                       b.room.name.toLowerCase().includes(query);
+            });
+            renderBookings(filtered);
+        }
+
+        // Load initially
+        getBookingRecords();
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - Facilities</title>
+  <%- include('partials/links') %>
+  <style>
+    .pop:hover{ 
+      border-top-color: var(--teal) !important;
+      transform: scale(1.03); 
+      transition: all 0.3s;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+  <%- include('partials/header') %>
+  
+  <div class="my-5 px-4">
+    <h2 class="mb-2 text-center fw-bold h-font">OUR FACILITIES</h2>
+    <div class="h-line bg-dark"></div>
+    <p class="text-center mt-3">We offer curated amenities designed to soothe, entertain, and delight.<br> Experience elite comfort during your stay with us.</p>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <% if (facilities && facilities.length > 0) { %>
+        <% facilities.forEach(fac => { %>
+          <div class="col-lg-4 col-md-6 mb-4 px-4">
+            <div class="bg-white rounded shadow p-4 border-top border-4 border-dark pop h-100">
+              <div class="d-flex align-items-center mb-3">
+                <img src="/uploads/facilities/<%= fac.icon %>" width="40px" height="40px" style="object-fit: contain;">
+                <h5 class="m-0 ms-3 fw-bold"><%= fac.name %></h5>
+              </div>
+              <p class="text-secondary" style="font-size: 14px; line-height: 1.6;">
+                <%= fac.description %>
+              </p>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p class="text-center">No facilities registered yet.</p>
+      <% } %>
+    </div>
+  </div>
+  
+  <%- include('partials/footer') %>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - Confirm Booking</title>
+    <%- include('partials/links') %>
+</head>
+<body class="bg-light">
+
+    <%- include('partials/header') %>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12 my-3 px-4">
+                <h2 class="fw-bold">CONFIRM BOOKING</h2>
+                <div style="font-size: 14px;">
+                    <a href="/" class="text-secondary text-decoration-none">HOME</a>
+                    <span class="text-secondary"> > </span>
+                    <a href="/rooms" class="text-secondary text-decoration-none">ROOMS</a>
+                    <span class="text-secondary"> > </span>
+                    <span class="text-dark">CONFIRM</span>
+                </div>
+            </div>
+
+            <!-- Room Card Detail Summary -->
+            <div class="col-lg-7 col-md-12 px-4">
+                <div class="card p-3 shadow-sm rounded border-0 bg-white">
+                    <img src="/uploads/rooms/<%= room.thumbImage || 'room1.jpeg' %>" class="img-fluid rounded mb-3" style="height: 350px; width: 100%; object-fit: cover;">
+                    <h5 class="fw-bold fs-3"><%= room.name %></h5>
+                    <h6 class="text-success mb-3 fw-bold">₹<%= room.price.toLocaleString() %> per night</h6>
+                    <p class="text-secondary"><%= room.description %></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <span class="fw-bold">Room Size: </span><%= room.area %> sq. ft.
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <span class="fw-bold">Capacity: </span><%= room.adult %> Adults, <%= room.children %> Children
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="col-lg-5 col-md-12 px-4">
+                <div class="card p-4 shadow-sm rounded border-0 bg-white">
+                    <form action="/pay-now" method="POST" id="booking-form">
+                        <input type="hidden" name="room_id" value="<%= room._id %>">
+                        <input type="hidden" name="price" value="<%= room.price %>">
+                        <h5 class="fw-bold mb-4">BOOKING DETAILS</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" value="<%= user.name %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="number" name="phone" value="<%= user.phone %>" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea name="address" required class="form-control shadow-none" rows="2"><%= user.address %></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check-In</label>
+                                <input type="date" name="check_in" id="check_in" onchange="checkPrice()" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Check-Out</label>
+                                <input type="date" name="check_out" id="check_out" onchange="checkPrice()" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-12 mt-2 mb-4">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <h6 id="info-status" class="text-secondary fw-bold mb-0">Provide check-in & check-out dates to calculate pricing</h6>
+                                    <div id="price-details" class="d-none">
+                                        <h5 class="fw-bold text-success mb-2">Total Nights: <span id="total-nights">0</span></h5>
+                                        <h4 class="fw-bold mb-0">Total Amount: <span class="text-success">₹</span><span id="total-amount" class="text-success">0</span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" id="pay-btn" disabled class="btn text-white w-100 shadow-none custom-bg border-0 py-3 rounded-2 fw-bold">Pay & Confirm Booking</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        // Set minimum check-in date to today
+        const checkInInput = document.getElementById('check_in');
+        const checkOutInput = document.getElementById('check_out');
+        const today = new Date().toISOString().split('T')[0];
+        checkInInput.min = today;
+
+        function checkPrice() {
+            const checkInVal = checkInInput.value;
+            const checkOutVal = checkOutInput.value;
+            const infoStatus = document.getElementById('info-status');
+            const priceDetails = document.getElementById('price-details');
+            const payBtn = document.getElementById('pay-btn');
+            const totalNightsSpan = document.getElementById('total-nights');
+            const totalAmountSpan = document.getElementById('total-amount');
+
+            if (!checkInVal || !checkOutVal) {
+                payBtn.disabled = true;
+                priceDetails.classList.add('d-none');
+                infoStatus.classList.remove('d-none');
+                infoStatus.innerText = "Provide check-in & check-out dates to calculate pricing";
+                return;
+            }
+
+            const checkInDate = new Date(checkInVal);
+            const checkOutDate = new Date(checkOutVal);
+
+            // Set min check-out date as 1 day after check-in
+            const nextDay = new Date(checkInDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            checkOutInput.min = nextDay.toISOString().split('T')[0];
+
+            if (checkOutDate <= checkInDate) {
+                payBtn.disabled = true;
+                priceDetails.classList.add('d-none');
+                infoStatus.classList.remove('d-none');
+                infoStatus.innerText = "Check-out date must be after check-in date!";
+                infoStatus.className = "text-danger fw-bold mb-0";
+                return;
+            }
+
+            // Calculate nights
+            const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+            const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            const pricePerNight = parseFloat("<%= room.price %>");
+            const totalAmount = nights * pricePerNight;
+
+            infoStatus.classList.add('d-none');
+            priceDetails.classList.remove('d-none');
+            totalNightsSpan.innerText = nights;
+            totalAmountSpan.innerText = totalAmount.toLocaleString();
+            payBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>

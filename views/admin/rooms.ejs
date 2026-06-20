@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Rooms</title>
+    <%- include('../partials/links') %>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <h3 class="fw-bold h-font mb-4 border-bottom pb-2">ROOMS MANAGEMENT</h3>
+
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="card-title m-0 fw-bold">All Rooms</h5>
+                            <button type="button" class="btn btn-dark btn-sm shadow-none" data-bs-toggle="modal" data-bs-target="#add-room-modal">
+                                <i class="bi bi-plus-circle"></i> Add Room
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border text-center">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Area (sq.ft)</th>
+                                        <th>Guests</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rooms-table-body">
+                                    <!-- Dynamically loaded -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div class="modal fade" id="add-room-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="add-room-form">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Add Room</h5>
+                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Area (sq. ft.)</label>
+                                <input type="number" name="area" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price per Night (₹)</label>
+                                <input type="number" name="price" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Adult Capacity (Max)</label>
+                                <input type="number" name="adult" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Children Capacity (Max)</label>
+                                <input type="number" name="children" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Features</label>
+                                <div class="row px-2">
+                                    <% features.forEach(f => { %>
+                                        <div class="col-md-3 mb-1">
+                                            <label><input type="checkbox" name="features" value="<%= f._id %>" class="form-check-input me-1"> <%= f.name %></label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Facilities</label>
+                                <div class="row px-2">
+                                    <% facilities.forEach(f => { %>
+                                        <div class="col-md-3 mb-1">
+                                            <label><input type="checkbox" name="facilities" value="<%= f._id %>" class="form-check-input me-1"> <%= f.name %></label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" required class="form-control shadow-none" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary shadow-none" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark shadow-none border-0">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Room Modal -->
+    <div class="modal fade" id="edit-room-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="edit-room-form">
+                    <input type="hidden" name="room_id">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Edit Room</h5>
+                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Area (sq. ft.)</label>
+                                <input type="number" name="area" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price per Night (₹)</label>
+                                <input type="number" name="price" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="quantity" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Adult Capacity (Max)</label>
+                                <input type="number" name="adult" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Children Capacity (Max)</label>
+                                <input type="number" name="children" required class="form-control shadow-none">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Features</label>
+                                <div class="row px-2" id="edit-features-container">
+                                    <% features.forEach(f => { %>
+                                        <div class="col-md-3 mb-1">
+                                            <label><input type="checkbox" name="features" value="<%= f._id %>" class="form-check-input edit-feat me-1"> <%= f.name %></label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Facilities</label>
+                                <div class="row px-2" id="edit-facilities-container">
+                                    <% facilities.forEach(f => { %>
+                                        <div class="col-md-3 mb-1">
+                                            <label><input type="checkbox" name="facilities" value="<%= f._id %>" class="form-check-input edit-fac me-1"> <%= f.name %></label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea name="description" required class="form-control shadow-none" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary shadow-none" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-dark shadow-none border-0">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Images Modal -->
+    <div class="modal fade" id="room-images-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="image-modal-title">Room Name - Photo Settings</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="border-bottom pb-3 mb-3">
+                        <form id="add-image-form" enctype="multipart/form-data">
+                            <input type="hidden" name="room_id" id="image-room-id">
+                            <div class="row align-items-end">
+                                <div class="col-md-8 mb-2 mb-md-0">
+                                    <label class="form-label fw-bold">Select Photo</label>
+                                    <input type="file" name="room_img" accept=".jpg, .jpeg, .png" required class="form-control shadow-none">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-dark shadow-none border-0 w-100 py-2"><i class="bi bi-upload"></i> Upload</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: scroll;">
+                        <table class="table table-hover align-middle border text-center">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th>Photo</th>
+                                    <th>Thumbnail</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody id="room-images-table-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        document.getElementById('menu-rooms').classList.add('active');
+
+        // Fetch and Render Rooms
+        async function getRooms() {
+            try {
+                const response = await fetch('/admin/rooms/list');
+                const rooms = await response.json();
+                const tbody = document.getElementById('rooms-table-body');
+                tbody.innerHTML = '';
+
+                if (rooms.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-secondary py-3">No rooms registered yet.</td></tr>`;
+                    return;
+                }
+
+                rooms.forEach((room, idx) => {
+                    const statusBtn = room.status 
+                        ? `<button onclick="toggleStatus('${room._id}', false)" class="btn btn-success btn-sm shadow-none">Active</button>`
+                        : `<button onclick="toggleStatus('${room._id}', true)" class="btn btn-warning btn-sm shadow-none">Inactive</button>`;
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td class="fw-bold">${room.name}</td>
+                            <td>${room.area}</td>
+                            <td>
+                                <span class="badge bg-light text-dark">Adults: ${room.adult}</span><br>
+                                <span class="badge bg-light text-dark">Children: ${room.children}</span>
+                            </td>
+                            <td class="fw-bold">₹${room.price.toLocaleString()}</td>
+                            <td>${room.quantity}</td>
+                            <td>${statusBtn}</td>
+                            <td>
+                                <button onclick="editRoomDetails('${room._id}')" class="btn btn-primary btn-sm shadow-none me-1"><i class="bi bi-pencil-square"></i></button>
+                                <button onclick="openImageModal('${room._id}', '${room.name}')" class="btn btn-info btn-sm text-white shadow-none me-1"><i class="bi bi-images"></i></button>
+                                <button onclick="deleteRoom('${room._id}')" class="btn btn-danger btn-sm shadow-none"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                showAlert('danger', 'Error loading room data.');
+            }
+        }
+
+        // Add Room Submit
+        const addRoomForm = document.getElementById('add-room-form');
+        addRoomForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Gather checkboxes manually
+            const features = [];
+            addRoomForm.querySelectorAll("input[name='features']:checked").forEach(cb => features.push(cb.value));
+            const facilities = [];
+            addRoomForm.querySelectorAll("input[name='facilities']:checked").forEach(cb => facilities.push(cb.value));
+
+            const bodyData = {
+                name: addRoomForm.elements.name.value,
+                area: addRoomForm.elements.area.value,
+                price: addRoomForm.elements.price.value,
+                quantity: addRoomForm.elements.quantity.value,
+                adult: addRoomForm.elements.adult.value,
+                children: addRoomForm.elements.children.value,
+                description: addRoomForm.elements.description.value,
+                features,
+                facilities
+            };
+
+            try {
+                const response = await fetch('/admin/rooms/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyData)
+                });
+                if (response.ok) {
+                    showAlert('success', 'Room added successfully!');
+                    addRoomForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('add-room-modal')).hide();
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to add room.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error submitting room.');
+            }
+        });
+
+        // Edit Room Load details
+        async function editRoomDetails(id) {
+            try {
+                const response = await fetch(`/admin/rooms/get/${id}`);
+                const room = await response.json();
+                
+                const form = document.getElementById('edit-room-form');
+                form.elements.room_id.value = room._id;
+                form.elements.name.value = room.name;
+                form.elements.area.value = room.area;
+                form.elements.price.value = room.price;
+                form.elements.quantity.value = room.quantity;
+                form.elements.adult.value = room.adult;
+                form.elements.children.value = room.children;
+                form.elements.description.value = room.description;
+
+                // Reset Checkboxes
+                form.querySelectorAll('.edit-feat').forEach(cb => cb.checked = false);
+                form.querySelectorAll('.edit-fac').forEach(cb => cb.checked = false);
+
+                // Check active features
+                room.features.forEach(fid => {
+                    const cb = form.querySelector(`.edit-feat[value='${fid}']`);
+                    if (cb) cb.checked = true;
+                });
+                
+                // Check active facilities
+                room.facilities.forEach(fid => {
+                    const cb = form.querySelector(`.edit-fac[value='${fid}']`);
+                    if (cb) cb.checked = true;
+                });
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('edit-room-modal')).show();
+            } catch (err) {
+                showAlert('danger', 'Error loading room details.');
+            }
+        }
+
+        // Edit Room Submit
+        const editRoomForm = document.getElementById('edit-room-form');
+        editRoomForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = editRoomForm.elements.room_id.value;
+            
+            const features = [];
+            editRoomForm.querySelectorAll("input[name='features']:checked").forEach(cb => features.push(cb.value));
+            const facilities = [];
+            editRoomForm.querySelectorAll("input[name='facilities']:checked").forEach(cb => facilities.push(cb.value));
+
+            const bodyData = {
+                name: editRoomForm.elements.name.value,
+                area: editRoomForm.elements.area.value,
+                price: editRoomForm.elements.price.value,
+                quantity: editRoomForm.elements.quantity.value,
+                adult: editRoomForm.elements.adult.value,
+                children: editRoomForm.elements.children.value,
+                description: editRoomForm.elements.description.value,
+                features,
+                facilities
+            };
+
+            try {
+                const response = await fetch(`/admin/rooms/update/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyData)
+                });
+                if (response.ok) {
+                    showAlert('success', 'Room details updated successfully!');
+                    bootstrap.Modal.getInstance(document.getElementById('edit-room-modal')).hide();
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to update room.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error updating room details.');
+            }
+        });
+
+        // Toggle Status Active / Inactive
+        async function toggleStatus(id, statusVal) {
+            try {
+                const response = await fetch(`/admin/rooms/status/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: statusVal })
+                });
+                if (response.ok) {
+                    showAlert('success', 'Room status updated.');
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to update status.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error updating room status.');
+            }
+        }
+
+        // Delete Room
+        async function deleteRoom(id) {
+            if (!confirm('Are you sure you want to delete this room entirely?')) return;
+            try {
+                const response = await fetch(`/admin/rooms/delete/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('success', 'Room deleted successfully.');
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to delete room.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error deleting room.');
+            }
+        }
+
+        // Manage Images Modal
+        function openImageModal(id, name) {
+            document.getElementById('image-modal-title').innerText = `${name} - Photos Setting`;
+            document.getElementById('image-room-id').value = id;
+            getRoomImages(id);
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('room-images-modal')).show();
+        }
+
+        async function getRoomImages(id) {
+            try {
+                const response = await fetch(`/admin/rooms/images/${id}`);
+                const data = await response.json();
+                const tbody = document.getElementById('room-images-table-body');
+                tbody.innerHTML = '';
+
+                if (data.images.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-secondary py-3">No photos uploaded yet.</td></tr>`;
+                    return;
+                }
+
+                data.images.forEach(img => {
+                    const isThumb = data.thumbImage === img;
+                    const thumbBtn = isThumb 
+                        ? `<button class="btn btn-success btn-sm shadow-none" disabled><i class="bi bi-patch-check-fill"></i> Main Thumb</button>`
+                        : `<button onclick="setThumbnail('${id}', '${img}')" class="btn btn-outline-dark btn-sm shadow-none">Make Main</button>`;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><img src="/uploads/rooms/${img}" class="rounded" style="width: 100px; height: 60px; object-fit: cover;"></td>
+                            <td>${thumbBtn}</td>
+                            <td><button onclick="deleteRoomImage('${id}', '${img}')" class="btn btn-danger btn-sm shadow-none"><i class="bi bi-trash"></i></button></td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                showAlert('danger', 'Error loading room photos.');
+            }
+        }
+
+        // Upload Room Image
+        const addImageForm = document.getElementById('add-image-form');
+        addImageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('image-room-id').value;
+            const formData = new FormData(addImageForm);
+
+            try {
+                const response = await fetch(`/admin/rooms/add-image/${id}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    showAlert('success', 'Photo uploaded successfully!');
+                    addImageForm.reset();
+                    getRoomImages(id);
+                    getRooms(); // Refresh main rooms table to show any updated thumbs
+                } else {
+                    showAlert('danger', 'Failed to upload photo.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error uploading photo.');
+            }
+        });
+
+        // Set Thumbnail
+        async function setThumbnail(roomId, imageFilename) {
+            try {
+                const response = await fetch(`/admin/rooms/thumbnail/${roomId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ thumb: imageFilename })
+                });
+                if (response.ok) {
+                    showAlert('success', 'Thumbnail updated successfully!');
+                    getRoomImages(roomId);
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to update thumbnail.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error setting thumbnail.');
+            }
+        }
+
+        // Delete Room Image
+        async function deleteRoomImage(roomId, imageFilename) {
+            if (!confirm('Are you sure you want to delete this photo?')) return;
+            try {
+                const response = await fetch(`/admin/rooms/delete-image/${roomId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageFilename })
+                });
+                if (response.ok) {
+                    showAlert('success', 'Photo deleted successfully.');
+                    getRoomImages(roomId);
+                    getRooms();
+                } else {
+                    showAlert('danger', 'Failed to delete photo.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error deleting photo.');
+            }
+        }
+
+        // Load initially
+        getRooms();
+    </script>
+</body>
+</html>

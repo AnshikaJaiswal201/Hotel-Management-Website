@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - My Bookings</title>
+    <%- include('partials/links') %>
+</head>
+<body class="bg-light">
+
+    <%- include('partials/header') %>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12 my-3 px-4">
+                <h2 class="fw-bold">MY BOOKINGS</h2>
+                <div style="font-size: 14px;">
+                    <a href="/" class="text-secondary text-decoration-none">HOME</a>
+                    <span class="text-secondary"> > </span>
+                    <span class="text-dark">BOOKINGS</span>
+                </div>
+            </div>
+
+            <div class="col-12 px-4">
+                <% if (bookings && bookings.length > 0) { %>
+                    <% bookings.forEach(booking => { %>
+                        <div class="card mb-4 border-0 shadow-sm rounded-3 p-4 bg-white">
+                            <div class="row align-items-center">
+                                <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                                    <h5 class="fw-bold text-dark mb-1"><%= booking.room.name %></h5>
+                                    <h6 class="text-success fw-bold mb-3">₹<%= booking.room.price %>/night</h6>
+                                    <p class="mb-1 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Check-in:</span> <%= new Date(booking.check_in).toDateString() %>
+                                    </p>
+                                    <p class="mb-1 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Check-out:</span> <%= new Date(booking.check_out).toDateString() %>
+                                    </p>
+                                    <p class="mb-0 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Booked on:</span> <%= new Date(booking.createdAt).toDateString() %>
+                                    </p>
+                                </div>
+                                <div class="col-lg-4 col-md-6 mb-3 mb-lg-0 border-start ps-lg-4">
+                                    <p class="mb-1 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Booking ID:</span> <%= booking.booking_id %>
+                                    </p>
+                                    <p class="mb-1 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Transaction ID:</span> <%= booking.trans_id %>
+                                    </p>
+                                    <p class="mb-1 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Amount Paid:</span> ₹<%= booking.amount.toLocaleString() %>
+                                    </p>
+                                    <p class="mb-0 text-secondary" style="font-size: 14px;">
+                                        <span class="fw-bold text-dark">Room Assigned:</span> 
+                                        <% if (booking.room_number) { %>
+                                            <span class="badge bg-success"><%= booking.room_number %></span>
+                                        <% } else { %>
+                                            <span class="badge bg-warning text-dark">Pending Assignment</span>
+                                        <% } %>
+                                    </p>
+                                </div>
+                                <div class="col-lg-4 text-center text-lg-end border-start ps-lg-4">
+                                    <div class="mb-3">
+                                        <span class="fw-bold me-2">Status:</span>
+                                        <% if (booking.booking_status === 'booked') { %>
+                                            <span class="badge bg-primary text-white px-3 py-2">Confirmed</span>
+                                        <% } else if (booking.booking_status === 'arrived') { %>
+                                            <span class="badge bg-success text-white px-3 py-2">Checked In</span>
+                                        <% } else { %>
+                                            <span class="badge bg-danger text-white px-3 py-2">Cancelled</span>
+                                        <% } %>
+                                    </div>
+                                    
+                                    <% if (booking.booking_status === 'booked' && new Date(booking.check_in) > new Date()) { %>
+                                        <button onclick="cancelBooking('<%= booking._id %>')" class="btn btn-danger btn-sm shadow-none px-4 py-2 border-0">Cancel Booking</button>
+                                    <% } else if (booking.booking_status === 'cancelled') { %>
+                                        <p class="text-secondary mb-0" style="font-size: 13px;">
+                                            <% if (booking.refund) { %>
+                                                <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Refund Processed</span>
+                                            <% } else { %>
+                                                <span class="text-warning fw-bold"><i class="bi bi-clock-fill"></i> Refund Pending Approval</span>
+                                            <% } %>
+                                        </p>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="alert alert-info text-center py-5 shadow-sm rounded border-0 bg-white">
+                        <h4 class="fw-bold mb-2">No Bookings Found!</h4>
+                        <p class="text-secondary mb-3">You haven't made any bookings yet.</p>
+                        <a href="/rooms" class="btn text-white custom-bg border-0 px-4 py-2">Explore Rooms</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        async function cancelBooking(id) {
+            if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+            try {
+                const response = await fetch(`/api/bookings/cancel/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Booking cancelled successfully. Refund is pending approval.');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showAlert('danger', result.message || 'Failed to cancel booking.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error processing cancellation.');
+            }
+        }
+    </script>
+</body>
+</html>

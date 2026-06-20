@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <%- include('../partials/links') %>
+    <style>
+        .login-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="card login-form border-0 shadow-lg rounded-3 p-4">
+        <form id="admin-login-form">
+            <h4 class="text-center fw-bold h-font mb-4 py-2 bg-dark text-white rounded">ADMIN LOGIN</h4>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" required class="form-control shadow-none text-center">
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" required class="form-control shadow-none text-center">
+            </div>
+            <button type="submit" class="btn text-white w-100 shadow-none custom-bg border-0 py-2 rounded">LOGIN</button>
+        </form>
+    </div>
+
+    <!-- Alert toast container -->
+    <script>
+        function showAlert(type, msg) {
+            const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+            const element = document.createElement('div');
+            element.innerHTML = `
+                <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 25px; right: 25px; z-index: 1060; min-width: 250px;">
+                    <span class="me-3">${msg}</span>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            document.body.append(element);
+            setTimeout(() => element.remove(), 3000);
+        }
+
+        const loginForm = document.getElementById('admin-login-form');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = loginForm.elements.username.value;
+            const password = loginForm.elements.password.value;
+
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showAlert('success', 'Login successful! Loading dashboard...');
+                    setTimeout(() => window.location.href = '/admin/dashboard', 1000);
+                } else {
+                    showAlert('danger', result.message || 'Login failed.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Error processing login.');
+            }
+        });
+    </script>
+</body>
+</html>

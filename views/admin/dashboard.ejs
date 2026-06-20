@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Dashboard</title>
+    <%- include('../partials/links') %>
+    <style>
+        #main-content {
+            padding: 30px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid" id="main-container">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin_header') %>
+
+            <!-- Main Content -->
+            <div class="col-lg-10 ms-auto p-4" id="main-content">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
+                    <h3 class="fw-bold h-font m-0">DASHBOARD OVERVIEW</h3>
+                    <span class="badge bg-secondary p-2">Session: Admin</span>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="row mb-4">
+                    <!-- Total Earnings -->
+                    <div class="col-md-3 mb-4">
+                        <div class="card shadow-sm border-0 border-start border-4 border-success p-3 rounded bg-white">
+                            <h6 class="text-secondary fw-bold" style="font-size: 13px;">TOTAL REVENUE</h6>
+                            <h3 class="fw-bold text-success m-0">₹<%= stats.revenue.toLocaleString() %></h3>
+                            <i class="bi bi-currency-rupee text-success position-absolute" style="top: 15px; right: 20px; font-size: 30px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                    <!-- New Bookings -->
+                    <div class="col-md-3 mb-4">
+                        <div class="card shadow-sm border-0 border-start border-4 border-primary p-3 rounded bg-white">
+                            <h6 class="text-secondary fw-bold" style="font-size: 13px;">NEW BOOKINGS</h6>
+                            <h3 class="fw-bold text-primary m-0"><%= stats.newBookings %></h3>
+                            <i class="bi bi-journal-plus text-primary position-absolute" style="top: 15px; right: 20px; font-size: 30px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                    <!-- Checked In Guests -->
+                    <div class="col-md-3 mb-4">
+                        <div class="card shadow-sm border-0 border-start border-4 border-info p-3 rounded bg-white">
+                            <h6 class="text-secondary fw-bold" style="font-size: 13px;">ACTIVE GUESTS</h6>
+                            <h3 class="fw-bold text-info m-0"><%= stats.activeGuests %></h3>
+                            <i class="bi bi-person-check text-info position-absolute" style="top: 15px; right: 20px; font-size: 30px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                    <!-- Cancelled Bookings -->
+                    <div class="col-md-3 mb-4">
+                        <div class="card shadow-sm border-0 border-start border-4 border-danger p-3 rounded bg-white">
+                            <h6 class="text-secondary fw-bold" style="font-size: 13px;">CANCELLED BOOKINGS</h6>
+                            <h3 class="fw-bold text-danger m-0"><%= stats.cancelledBookings %></h3>
+                            <i class="bi bi-journal-x text-danger position-absolute" style="top: 15px; right: 20px; font-size: 30px; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Registrations & Queries -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card p-3 shadow-sm border-0 rounded text-center bg-white">
+                            <h6 class="text-secondary fw-bold">REGISTERED USERS</h6>
+                            <h1 class="fw-bold text-dark my-3"><%= stats.users %></h1>
+                            <a href="/admin/users" class="btn btn-sm btn-outline-dark shadow-none w-100 py-2">Manage Users</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card p-3 shadow-sm border-0 rounded text-center bg-white">
+                            <h6 class="text-secondary fw-bold">UNREAD QUERIES</h6>
+                            <h1 class="fw-bold text-warning my-3"><%= stats.queries %></h1>
+                            <a href="/admin/queries" class="btn btn-sm btn-outline-warning shadow-none w-100 py-2">View Queries</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card p-3 shadow-sm border-0 rounded text-center bg-white">
+                            <h6 class="text-secondary fw-bold">TOTAL ROOM TYPES</h6>
+                            <h1 class="fw-bold text-info my-3"><%= stats.rooms %></h1>
+                            <a href="/admin/rooms" class="btn btn-sm btn-outline-info shadow-none w-100 py-2">Manage Rooms</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities Logs -->
+                <div class="card border-0 shadow-sm rounded-3 mt-2 bg-white">
+                    <div class="card-header bg-dark text-white fw-bold py-3">
+                        <i class="bi bi-clock-history me-2"></i> SYSTEM BOOKING ACTIVITY LOGS
+                    </div>
+                    <div class="card-body">
+                        <% if (stats.recentBookings && stats.recentBookings.length > 0) { %>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Booking ID</th>
+                                            <th>Guest</th>
+                                            <th>Room Type</th>
+                                            <th>Check-In</th>
+                                            <th>Total Paid</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% stats.recentBookings.forEach(b => { %>
+                                            <tr>
+                                                <td class="fw-bold"><%= b.booking_id %></td>
+                                                <td><%= b.user_name %></td>
+                                                <td><%= b.room.name %></td>
+                                                <td><%= new Date(b.check_in).toDateString() %></td>
+                                                <td class="text-success fw-bold">₹<%= b.amount %></td>
+                                                <td>
+                                                    <% if (b.booking_status === 'booked') { %>
+                                                        <span class="badge bg-primary">Confirmed</span>
+                                                    <% } else if (b.booking_status === 'arrived') { %>
+                                                        <span class="badge bg-success">Arrived</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    <% } %>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <% } else { %>
+                            <p class="text-center text-secondary py-4 mb-0">No booking activity recorded yet.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set active menu item -->
+    <script>
+        document.getElementById('menu-dashboard').classList.add('active');
+    </script>
+</body>
+</html>

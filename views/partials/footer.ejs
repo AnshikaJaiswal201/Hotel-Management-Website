@@ -1,0 +1,50 @@
+<!-- Footer -->
+<div class="container-fluid bg-white mt-5">
+    <div class="row">
+        <div class="col-lg-4 p-4">
+            <h3 class="h-font fw-bold fs-3 mb-2"><%= locals.settings?.site_title || 'Bellona Luxury Hotel' %></h3>
+            <p><%= locals.settings?.site_about || 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nesciunt nihil.' %></p>
+        </div>
+        <div class="col-lg-4 p-4">
+            <h5 class="mb-3">Links</h5>
+            <a href="/" class="d-inline-block mb-2 text-dark text-decoration-none">Home</a><br>
+            <a href="/rooms" class="d-inline-block mb-2 text-dark text-decoration-none">Rooms</a><br>
+            <a href="/facilities" class="d-inline-block mb-2 text-dark text-decoration-none">Facilities</a><br>
+            <a href="/contact" class="d-inline-block mb-2 text-dark text-decoration-none">Contact Us</a><br>
+            <a href="/about" class="d-inline-block mb-2 text-dark text-decoration-none">About</a><br>
+        </div>
+        <div class="col-lg-4 p-4">
+            <h5 class="mb-3">Follow us</h5>
+            <a href="<%= locals.contact?.tw || '#' %>" target="_blank" class="d-inline-block mb-2 text-dark text-decoration-none">
+                <i class="bi bi-twitter"></i> Twitter
+            </a><br>
+            <a href="<%= locals.contact?.fb || '#' %>" target="_blank" class="d-inline-block mb-2 text-dark text-decoration-none">
+                <i class="bi bi-facebook"></i> Facebook
+            </a><br>
+            <a href="<%= locals.contact?.insta || '#' %>" target="_blank" class="d-inline-block text-dark text-decoration-none">
+                <i class="bi bi-instagram"></i> Instagram
+            </a><br>
+        </div>
+    </div>
+</div>
+<h6 class="text-center bg-dark text-white p-3 m-0">Designed and Developed by Anshika Jaiswal</h6>
+
+<script>
+    // Global function to display custom bootstrap alerts dynamically
+    function showAlert(type, msg) {
+        const bsClass = (type === 'success') ? 'alert-success' : 'alert-danger';
+        const element = document.createElement('div');
+        element.innerHTML = `
+            <div class="alert ${bsClass} alert-dismissible fade show custom-alert shadow" role="alert" style="position: fixed; top: 90px; right: 25px; z-index: 1060; min-width: 250px;">
+                <span class="me-3">${msg}</span>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        document.body.append(element);
+        
+        // Auto remove alert after 3 seconds
+        setTimeout(() => {
+            element.remove();
+        }, 3000);
+    }
+</script>

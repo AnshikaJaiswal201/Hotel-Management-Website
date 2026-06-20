@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings?.site_title || 'Bellona Luxury Hotel' %> - Rooms</title>
+    <%- include('partials/links') %>
+</head>
+<body class="bg-light">
+
+    <%- include('partials/header') %>
+
+    <div class="my-5 px-4">
+        <h2 class="mb-2 text-center fw-bold h-font">Suite Of Rooms</h2>
+        <div class="h-line bg-dark"></div>
+        <p class="text-center mt-3">Discover the ultimate in luxury, design, and personalized comfort.<br> Filter options to find the perfect suite for your stay.</p>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 col-md-12 mb-lg-0 mb-4 px-lg-0">
+                <nav class="navbar navbar-expand-lg navbar-light bg-white rounded shadow-sm">
+                    <div class="container-fluid flex-lg-column align-items-stretch">
+                        <h4 class="mt-2 fw-bold">FILTERS</h4>
+                        <button class="navbar-toggler shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterDropdown" aria-controls="filterDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse flex-column align-items-stretch mt-2" id="filterDropdown">
+                            <!-- Check Availability -->
+                            <div class="border bg-light p-3 rounded mb-3">
+                                <h5 class="mb-3 fw-bold" style="font-size: 15px;">CHECK AVAILABILITY</h5>
+                                <label class="form-label">Check-In</label>
+                                <input type="date" id="checkin-filter" onchange="filterRooms()" class="form-control shadow-none mb-3">
+                                <label class="form-label">Check-Out</label>
+                                <input type="date" id="checkout-filter" onchange="filterRooms()" class="form-control shadow-none">
+                            </div>
+                            <!-- Facilities -->
+                            <div class="border bg-light p-3 rounded mb-3">
+                                <h5 class="mb-3 fw-bold" style="font-size: 15px;">FACILITIES</h5>
+                                <div id="facilities-filter-container">
+                                    <% if (facilities && facilities.length > 0) { %>
+                                        <% facilities.forEach(fac => { %>
+                                            <div class="mb-2">
+                                                <input type="checkbox" value="<%= fac._id %>" onclick="filterRooms()" class="form-check-input shadow-none me-2 facility-checkbox" id="fac-<%= fac._id %>">
+                                                <label class="form-check-label" for="fac-<%= fac._id %>"><%= fac.name %></label>
+                                            </div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <p style="font-size: 13px;">No facilities found.</p>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <!-- Guests -->
+                            <div class="border bg-light p-3 rounded mb-3">
+                                <h5 class="mb-3 fw-bold" style="font-size: 15px;">GUESTS</h5>
+                                <div class="d-flex">
+                                    <div class="me-2">
+                                        <label class="form-label">Adults</label>
+                                        <input type="number" id="adults-filter" oninput="filterRooms()" min="1" max="10" class="form-control shadow-none">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Children</label>
+                                        <input type="number" id="children-filter" oninput="filterRooms()" min="0" max="10" class="form-control shadow-none">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Clear Filters Button -->
+                            <button type="button" onclick="clearFilters()" class="btn btn-outline-dark shadow-none w-100 font-weight-500 py-2">Clear Filters</button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Rooms List Container -->
+            <div class="col-lg-9 col-md-12 px-4" id="rooms-data">
+                <!-- Room Cards will load dynamically via JS -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-dark" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        // Load URL query parameters on load
+        document.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('checkin')) document.getElementById('checkin-filter').value = params.get('checkin');
+            if (params.get('checkout')) document.getElementById('checkout-filter').value = params.get('checkout');
+            if (params.get('adult')) document.getElementById('adults-filter').value = params.get('adult');
+            if (params.get('children')) document.getElementById('children-filter').value = params.get('children');
+
+            filterRooms();
+        });
+
+        async function filterRooms() {
+            const roomsData = document.getElementById('rooms-data');
+
+            // Gather inputs
+            const checkin = document.getElementById('checkin-filter').value;
+            const checkout = document.getElementById('checkout-filter').value;
+            const adults = document.getElementById('adults-filter').value;
+            const children = document.getElementById('children-filter').value;
+
+            // Get selected facility IDs
+            const checkedFacs = [];
+            document.querySelectorAll('.facility-checkbox:checked').forEach(cb => {
+                checkedFacs.push(cb.value);
+            });
+
+            // Build request
+            try {
+                const response = await fetch('/api/rooms/filter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        checkin,
+                        checkout,
+                        adults,
+                        children,
+                        facilities: checkedFacs
+                    })
+                });
+                
+                const rooms = await response.json();
+                
+                if (rooms.length === 0) {
+                    roomsData.innerHTML = `<div class="alert alert-warning text-center fw-bold py-4">No rooms match your filter criteria or dates are unavailable.</div>`;
+                    return;
+                }
+
+                let cardsHtml = '';
+                rooms.forEach(room => {
+                    let featuresHtml = '';
+                    room.features.forEach(f => {
+                        featuresHtml += `<span class="badge text-bg-light text-dark text-wrap lh-base m-1">${f.name}</span>`;
+                    });
+
+                    let facilitiesHtml = '';
+                    room.facilities.forEach(f => {
+                        facilitiesHtml += `<span class="badge text-bg-light text-dark text-wrap lh-base m-1">${f.name}</span>`;
+                    });
+
+                    cardsHtml += `
+                        <div class="card mb-4 border-0 shadow-sm rounded">
+                            <div class="row g-0 p-3 align-items-center">
+                                <div class="col-md-5 mb-lg-0 mb-3">
+                                    <img src="/uploads/rooms/${room.thumbImage || 'room1.jpeg'}" class="img-fluid rounded" style="height: 220px; width: 100%; object-fit: cover;">
+                                </div>
+                                <div class="col-md-5 px-lg-3 px-md-3 px-0">
+                                    <h5 class="fw-bold mb-2">${room.name}</h5>
+                                    <div class="features mb-3">
+                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">Features</h6>
+                                        ${featuresHtml || '<span class="text-secondary" style="font-size:12px;">Standard features</span>'}
+                                    </div>
+                                    <div class="facilities mb-3">
+                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">Facilities</h6>
+                                        ${facilitiesHtml || '<span class="text-secondary" style="font-size:12px;">Standard amenities</span>'}
+                                    </div>
+                                    <div class="guests">
+                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">Guests</h6>
+                                        <span class="badge text-bg-light text-dark text-wrap lh-base">${room.adult} Adults</span>
+                                        <span class="badge text-bg-light text-dark text-wrap lh-base">${room.children} Children</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-center mt-3 mt-md-0">
+                                    <h5 class="text-success fw-bold mb-3">₹${room.price.toLocaleString()}/night</h5>
+                                    <a href="/confirm-booking/${room._id}" class="btn btn-sm text-white custom-bg shadow-none mb-2 w-100 border-0 py-2">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                roomsData.innerHTML = cardsHtml;
+            } catch (err) {
+                roomsData.innerHTML = `<div class="alert alert-danger text-center fw-bold">Error loading room data. Please try again.</div>`;
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('checkin-filter').value = '';
+            document.getElementById('checkout-filter').value = '';
+            document.getElementById('adults-filter').value = '';
+            document.getElementById('children-filter').value = '';
+            document.querySelectorAll('.facility-checkbox').forEach(cb => cb.checked = false);
+            // Remove parameters from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            filterRooms();
+        }
+    </script>
+</body>
+</html>
